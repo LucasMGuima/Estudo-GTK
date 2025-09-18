@@ -31,6 +31,15 @@
                 <property name="menu-model">primary_menu</property>
               </object>
             </child>
+            <child type="end"> <!-- INI: Label Posição do cursor --> 
+              <object class="GtkLabel" id="cursor_pos">
+                <property name="label">Ln 0, Col 0</property>
+                <style>
+                  <class name="dim-label"></class>
+                  <class name="numeric"></class>
+                </style>
+              </object>
+            </child> <!-- END: Label Posição do cursor -->
           </object> <!-- END: HeadBar -->
         </child>
         <property name="content"> <!-- INI: Conteúdo principal -->
