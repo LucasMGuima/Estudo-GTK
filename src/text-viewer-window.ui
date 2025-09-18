@@ -16,7 +16,13 @@
     <property name="content">
       <object class="AdwToolbarView">
         <child type="top">
-          <object class="AdwHeaderBar"> <!-- INI: HeadBar -->
+          <object class="AdwHeaderBar" id="header_bar"> <!-- INI: HeadBar -->
+            <child type="start"> <!-- INI: Botão Open -->
+              <object class="GtkButton" id="open_button">
+                <property name="label">Open</property>
+                <property name="action-name">win.open</property>
+              </object>
+            </child> <!-- END: Botão Open -->
             <child type="end">
               <object class="GtkMenuButton">
                 <property name="primary">True</property>

@@ -113,11 +113,19 @@ static const GActionEntry app_actions[] = {
 static void
 text_viewer_application_init (TextViewerApplication *self)
 {
-	g_action_map_add_action_entries (G_ACTION_MAP (self),
-	                                 app_actions,
-	                                 G_N_ELEMENTS (app_actions),
-	                                 self);
-	gtk_application_set_accels_for_action (GTK_APPLICATION (self),
-	                                       "app.quit",
-	                                       (const char *[]) { "<primary>q", NULL });
+  g_action_map_add_action_entries (G_ACTION_MAP (self),
+                                   app_actions,
+                                   G_N_ELEMENTS (app_actions),
+                                   self);
+  gtk_application_set_accels_for_action (GTK_APPLICATION (self),
+                                         "app.quit",
+                                         (const char *[]) { "<primary>q", NULL });
+
+  /* Adiciona o atalho [Ctrl] + [o] para a ação win.open */
+  gtk_application_set_accels_for_action (GTK_APPLICATION (self), 
+                                         "win.open", 
+                                         (const char *[]) {
+                                            "<Ctrl>o",
+                                            NULL,
+                                         });
 }
