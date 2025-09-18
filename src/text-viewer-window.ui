@@ -2,14 +2,21 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <requires lib="Adw" version="1.0"/>
-  <template class="TextViewerWindow" parent="AdwApplicationWindow">
-    <property name="title" translatable="yes">Text-viewer</property>
+  <template class="TextViewerWindow" parent="AdwApplicationWindow"> <!-- INI: Window -->
+    <property name="title" translatable="yes">Text Viewer</property>
     <property name="default-width">800</property>
     <property name="default-height">600</property>
+    <style> 
+      <!-- 
+        Informa ao usuário que a aplicação está 
+        em uma snapshot de desenvolvimento 
+      -->
+      <class name="devel"></class> 
+    </style>
     <property name="content">
       <object class="AdwToolbarView">
         <child type="top">
-          <object class="AdwHeaderBar">
+          <object class="AdwHeaderBar"> <!-- INI: HeadBar -->
             <child type="end">
               <object class="GtkMenuButton">
                 <property name="primary">True</property>
@@ -18,20 +25,38 @@
                 <property name="menu-model">primary_menu</property>
               </object>
             </child>
-          </object>
+          </object> <!-- END: HeadBar -->
         </child>
-        <property name="content">
-          <object class="GtkLabel" id="label">
-            <property name="label" translatable="yes">Hello, World!</property>
-            <style>
-              <class name="title-1"/>
-            </style>
-          </object>
-        </property>
+        <property name="content"> <!-- INI: Conteúdo principal -->
+          <object class="GtkScrolledWindow"> <!-- INI: Contêiner escrolavel -->
+            <!--
+              Informa o contêiner para expandir para se encaixar
+              em toda a área da janela pai
+            -->
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <!--
+              Adiciona uma margem de 6 pixeis nas arestas de topo e base.
+            -->
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
+            <!--
+              Adiciona uma margem de 6 pixeis nas arestas de inicio e fim,
+              estas são determinadas pela direção do texto.
+            -->
+            <property name="margin-start">6</property>
+            <property name="margin-end">6</property>
+            <property name="child"> <!-- INI: Text Viewer --> 
+              <object class="GtkTextView" id="main_text_view">
+                <property name="monospace">true</property>
+              </object>               
+            </property> <!-- END: Text Viewer -->
+          </object> <!-- END: Container escrolavel -->
+        </property> <!-- END: Conteúdo principal -->
       </object>
     </property>
-  </template>
-  <menu id="primary_menu">
+  </template> <!-- END: Window -->
+  <menu id="primary_menu"> <!-- INI: Definição do menu -->
     <section>
       <item>
         <attribute name="label" translatable="yes">_Preferences</attribute>
@@ -46,5 +71,5 @@
         <attribute name="action">app.about</attribute>
       </item>
     </section>
-  </menu>
+  </menu> <!-- END: Definição do menu -->
 </interface>
