@@ -200,6 +200,100 @@ text_viewer_window__update_cursor_position (GtkTextBuffer *buffer,
   gtk_label_set_text (self->cursor_pos, cursor_str);
 }
 
+// Termina a operação assíncrona e reporta qualquer falha
+static void
+save_file_complete(GObject      *source_object,
+                    GAsyncResult *result,
+                    gpointer      user_data)
+{
+  GFile *file = G_FILE(source_object);
+
+  g_autoptr (GError) error = NULL;
+  g_file_replace_finish (file, result, &error);
+
+  // Armazena o display name do arquivo
+  g_autofree char *display_name = NULL;
+  g_autoptr (GFileInfo) info = g_file_query_info (file,
+                                                  "standard::display-name",
+                                                  G_FILE_QUERY_INFO_NONE,
+                                                  NULL, NULL);
+  if(info != NULL){
+    display_name = g_strdup (g_file_info_get_attribute_string (info,
+                                                               "standard::display-name"));
+  }else{
+    display_name = g_file_get_basename (file);
+  }
+
+  if(error != NULL){
+    g_printerr ("Unable to save \"%s\": %s",
+                display_name, error->message);
+  }
+}
+
+// Salva o conteúdo do buffer de texto
+static void
+save_file(TextViewerWindow *self, GFile *file)
+{
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer (self->main_text_view);
+
+   // Recupera o iterator no inicio do buffer
+   GtkTextIter start;
+   gtk_text_buffer_get_start_iter (buffer, &start);
+
+   // Recupera o iterator no final do buffer
+   GtkTextIter end;
+   gtk_text_buffer_get_end_iter (buffer, &end);
+
+   // Recupera todo o texto visível entre os limites
+   char *text = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
+
+   // Se a nada a salvar, retorne
+   if (text == NULL)
+     return;
+
+   g_autoptr(GBytes) bytes = g_bytes_new_take (text, strlen (text));
+
+   // Inicia a operação assíncrona para salvar o conteúdo no arquivo
+   g_file_replace_contents_bytes_async (file,
+                                        bytes,
+                                        NULL,
+                                        FALSE,
+                                        G_FILE_CREATE_NONE,
+                                        NULL,
+                                        save_file_complete,
+                                        self);
+}
+
+// Callback para salvar o arquivo
+static void
+on_save_response(GObject      *source,
+                 GAsyncResult *result,
+                 gpointer      user_data)
+{
+  GtkFileDialog *dialog = GTK_FILE_DIALOG (source);
+  TextViewerWindow *self = user_data;
+
+  g_autoptr (GFile) file = gtk_file_dialog_save_finish (dialog,
+                                                        result,
+                                                        NULL);
+
+  if(file != NULL){
+    save_file(self, file);
+  }
+}
+
+/* Função para salvar o conteúdo do arquivo */
+static void
+text_viewer_window__save_file_dialog(GAction *action,
+                                     GVariant *param,
+                                     TextViewerWindow *self)
+{
+  g_autoptr (GtkFileDialog) dialog = gtk_file_dialog_new ();
+
+  gtk_file_dialog_save (dialog, GTK_WINDOW (self),
+                        NULL, on_save_response, self);
+}
+
 static void
 text_viewer_window_init (TextViewerWindow *self)
 {
@@ -215,7 +309,16 @@ text_viewer_window_init (TextViewerWindow *self)
   g_action_map_add_action (G_ACTION_MAP (self),
                           G_ACTION (open_action));
   
-  /* 
+  /* Cria uma GSimpleAction e adiciona a janela */
+  g_autoptr (GSimpleAction) save_action = g_simple_action_new("save-as", NULL);
+  g_signal_connect (save_action,
+                    "activate",
+                    G_CALLBACK (text_viewer_window__save_file_dialog),
+                    self);
+  g_action_map_add_action (G_ACTION_MAP (self),
+                           G_ACTION(save_action));
+
+  /*
    * Recupera a posição do cursor da main_text_view, e conecta a um callback
    * que gera a notificação notify::cursor-position, sempre que a propriedade
    * cursor-position mudar 

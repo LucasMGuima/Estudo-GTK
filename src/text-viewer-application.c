@@ -128,4 +128,12 @@ text_viewer_application_init (TextViewerApplication *self)
                                             "<Ctrl>o",
                                             NULL,
                                          });
+
+  /* Adiciona o atalho [Ctrl] + [Shift] + [s] para a ação win.save-as */
+  gtk_application_set_accels_for_action (GTK_APPLICATION (self),
+                                         "win.save-as",
+                                         (const char *[]){
+                                            "<Ctrl><Shift>s",
+                                            NULL
+                                         });
 }
