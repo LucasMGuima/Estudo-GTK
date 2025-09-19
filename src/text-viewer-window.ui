@@ -43,30 +43,34 @@
           </object> <!-- END: HeadBar -->
         </child>
         <property name="content"> <!-- INI: Conteúdo principal -->
-          <object class="GtkScrolledWindow"> <!-- INI: Contêiner escrolavel -->
-            <!--
-              Informa o contêiner para expandir para se encaixar
-              em toda a área da janela pai
-            -->
-            <property name="hexpand">true</property>
-            <property name="vexpand">true</property>
-            <!--
-              Adiciona uma margem de 6 pixeis nas arestas de topo e base.
-            -->
-            <property name="margin-top">6</property>
-            <property name="margin-bottom">6</property>
-            <!--
-              Adiciona uma margem de 6 pixeis nas arestas de inicio e fim,
-              estas são determinadas pela direção do texto.
-            -->
-            <property name="margin-start">6</property>
-            <property name="margin-end">6</property>
-            <property name="child"> <!-- INI: Text Viewer --> 
-              <object class="GtkTextView" id="main_text_view">
-                <property name="monospace">true</property>
-              </object>               
-            </property> <!-- END: Text Viewer -->
-          </object> <!-- END: Container escrolavel -->
+          <object class="AdwToastOverlay" id="toast_overlay"> <!-- INI: Overlay para Toast -->
+            <property name="child">
+              <object class="GtkScrolledWindow"> <!-- INI: Contêiner escrolavel -->
+                <!--
+                Informa o contêiner para expandir para se encaixar
+                em toda a área da janela pai
+                -->
+                <property name="hexpand">true</property>
+                <property name="vexpand">true</property>
+                <!--
+                Adiciona uma margem de 6 pixeis nas arestas de topo e base.
+                -->
+                <property name="margin-top">6</property>
+                <property name="margin-bottom">6</property>
+                <!--
+                Adiciona uma margem de 6 pixeis nas arestas de inicio e fim,
+                estas são determinadas pela direção do texto.
+                -->
+                <property name="margin-start">6</property>
+                <property name="margin-end">6</property>
+                <property name="child"> <!-- INI: Text Viewer -->
+                  <object class="GtkTextView" id="main_text_view">
+                    <property name="monospace">true</property>
+                  </object>
+                </property> <!-- END: Text Viewer -->
+              </object> <!-- END: Container escrolavel -->
+            </property>
+          </object><!-- END: Overlay para Toast -->
         </property> <!-- END: Conteúdo principal -->
       </object>
     </property>

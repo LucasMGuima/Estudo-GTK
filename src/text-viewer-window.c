@@ -39,6 +39,7 @@ struct _TextViewerWindow
         GtkTextView *main_text_view; /* Bind da text view */
         GtkButton *open_button; /* Bind do open button */
         GtkLabel *cursor_pos; /* Bind do label de posição do cursor */
+        AdwToastOverlay *toast_overlay; /* Bind do overlay para os toasters */
 };
 
 G_DEFINE_FINAL_TYPE (TextViewerWindow, text_viewer_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -81,6 +82,10 @@ text_viewer_window_class_init (TextViewerWindowClass *klass)
         gtk_widget_class_bind_template_child (widget_class, 
                                               TextViewerWindow, 
                                               cursor_pos);
+        /* Bind do overlay dos toasters */
+        gtk_widget_class_bind_template_child (widget_class,
+                                              TextViewerWindow,
+                                              toast_overlay);
  
 }
 
@@ -121,20 +126,20 @@ open_file_complete (GObject          *source_object,
     display_name = g_file_get_basename (file);
   }
   
-  // Em caso de error estar setado, imprime um aviso.
+  // Em caso de falha, mostra um toast.
   if (error != NULL)
     {
-      g_printerr ("Unable to open “%s”: %s\n",
-                  g_file_peek_path (file),
-                  error->message);
+      g_autofree char *msg = g_strdup_printf ("Unable to open “%s”", display_name);
+
+      adw_toast_overlay_add_toast (self->toast_overlay, adw_toast_new(msg));
       return;
     }
   
   // Confirma que o arquivo está codificado em UTF-8
   if(!g_utf8_validate (contents, length, NULL)){
-    g_printerr ("Unable to load the contentes of \"%s\": "
-                "the file is not encoded with UTF-8\n",
-                g_file_peek_path (file));
+    g_autofree char *msg = g_strdup_printf ("Invalid text encoding for “%s”", display_name);
+
+    adw_toast_overlay_add_toast (self->toast_overlay, adw_toast_new(msg));
     return;
   }
   
@@ -152,6 +157,10 @@ open_file_complete (GObject          *source_object,
   
   // Seta o titulo usando o displayname
   gtk_window_set_title (GTK_WINDOW (self), display_name);
+
+  // Mostra o toast de carregamento concluído
+  g_autofree char *msg = g_strdup_printf ("Opened “%s”", display_name);
+  adw_toast_overlay_add_toast (self->toast_overlay, adw_toast_new(msg));
  }
 
 /* Carrega o conteúdo do arquivo de modo assíncrono. */
@@ -231,6 +240,7 @@ save_file_complete(GObject      *source_object,
                     gpointer      user_data)
 {
   GFile *file = G_FILE(source_object);
+  TextViewerWindow *self = user_data;
 
   g_autoptr (GError) error = NULL;
   g_file_replace_finish (file, result, &error);
@@ -248,10 +258,14 @@ save_file_complete(GObject      *source_object,
     display_name = g_file_get_basename (file);
   }
 
-  if(error != NULL){
-    g_printerr ("Unable to save \"%s\": %s",
-                display_name, error->message);
-  }
+  // Toast para o estado final do salvamento
+  g_autofree char *msg = NULL;
+  if (error != NULL)
+    msg = g_strdup_printf ("Unable to save as “%s”", display_name);
+  else
+    msg = g_strdup_printf ("Saved as “%s”", display_name);
+
+  adw_toast_overlay_add_toast (self->toast_overlay, adw_toast_new (msg));
 }
 
 // Salva o conteúdo do buffer de texto
