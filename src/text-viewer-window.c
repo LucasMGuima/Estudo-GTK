@@ -26,6 +26,14 @@ struct _TextViewerWindow
 {
 	AdwApplicationWindow  parent_instance;
 
+        /*
+         * GSetting é um objeto que observar as chaves
+         * para um id de esquema especifico.
+         * Usado para acessar os valores das chaves,
+         * e receber notificações de mudanças nas configurações
+         */
+        GSettings *settings;
+
 	/* Template widgets */
         AdwHeaderBar *header_bar; /* Bind da header bar */ 
         GtkTextView *main_text_view; /* Bind da text view */
@@ -35,10 +43,26 @@ struct _TextViewerWindow
 
 G_DEFINE_FINAL_TYPE (TextViewerWindow, text_viewer_window, ADW_TYPE_APPLICATION_WINDOW)
 
+// Função que limpa a instancia do GSettings e
+// cadeia até a implementação pai
+static void
+text_viewer_window_finalize(GObject *gobject)
+{
+  TextViewerWindow *self = TEXT_VIEWER_WINDOW (gobject);
+
+  g_clear_object (&self->settings);
+
+  G_OBJECT_CLASS (text_viewer_window_parent_class)->finalize (gobject);
+}
+
 static void
 text_viewer_window_class_init (TextViewerWindowClass *klass)
 {
 	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+        // Inclui uma função de finalização, é chamada com a janela sera "freed"
+        GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+        object_class->finalize = text_viewer_window_finalize;
 
 	gtk_widget_class_set_template_from_resource (widget_class, "/com/example/TextViewer/text-viewer-window.ui");
         /* Bind da header bar */	
@@ -328,5 +352,17 @@ text_viewer_window_init (TextViewerWindow *self)
                     G_CALLBACK (text_viewer_window__update_cursor_position), 
                     self);
   
+  // Cria uma instancia do GSettings para a com.example.TextViewer
+  self->settings = g_settings_new ("com.example.TextViewer");
   
+  // Faz o bind das configurações coma as configurações padrão
+  g_settings_bind (self->settings, "window-width",
+                   G_OBJECT (self), "default-width",
+                   G_SETTINGS_BIND_DEFAULT);
+  g_settings_bind (self->settings, "window-height",
+                   G_OBJECT (self), "default-height",
+                   G_SETTINGS_BIND_DEFAULT);
+  g_settings_bind (self->settings, "window-maximized",
+                   G_OBJECT (self), "maximized",
+                   G_SETTINGS_BIND_DEFAULT);
 }
